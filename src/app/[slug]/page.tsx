@@ -5,6 +5,7 @@ import Link from "next/link";
 import FlushCache from "@/src/components/flush-cache";
 import ToggleDraftMode from "@/src/components/toggle-draft-mode";
 import ToggleAuth from "@/src/components/toggle-auth";
+import {PHASE_PRODUCTION_BUILD} from "next/dist/shared/lib/constants";
 
 
 /**
@@ -12,15 +13,16 @@ import ToggleAuth from "@/src/components/toggle-auth";
  *
  * @param slug
  * @param inDraftMode
+ * @param locale
  */
-const slowContentFetchFromCMS = async (slug: string, inDraftMode: boolean) => {
+const slowContentFetchFromCMS = async (slug: string, inDraftMode: boolean, locale: string) => {
 
     // this may take some time
     await new Promise(resolve => setTimeout(resolve, 5_000))
 
     if (slug === "private") {
         return {
-            title: `Private Page (Draft Mode: ${inDraftMode ? "enabled" : "disabled"})`,
+            title: `Private Page (Draft Mode: ${inDraftMode ? "enabled" : "disabled"}) (Locale: ${locale})`,
             content: "This page is private and requires auth checks before rendering",
             contentTimestamp: new Date().toISOString(),
             requiresAuth: true
@@ -28,18 +30,18 @@ const slowContentFetchFromCMS = async (slug: string, inDraftMode: boolean) => {
     }
 
     return {
-        title: `Public Page (Draft Mode: ${inDraftMode ? "enabled" : "disabled"})`,
+        title: `Public Page (Draft Mode: ${inDraftMode ? "enabled" : "disabled"}) (Locale: ${locale})`,
         content: "This page is public and should be cached",
         contentTimestamp: new Date().toISOString(),
         requiresAuth: false,
     }
 }
 
-const getCachedPageContent = async (slug: string, inDraftMode: boolean) => {
+const getCachedPageContent = async (slug: string, inDraftMode: boolean, locale: string) => {
     "use cache"
-    cacheTag(`/${slug}`)
+    cacheTag('page-content', slug)
     cacheLife('hours')
-    return await slowContentFetchFromCMS(slug, inDraftMode)
+    return await slowContentFetchFromCMS(slug, inDraftMode, locale)
 }
 
 const isAuthenticated = async (cmsPageContent: { requiresAuth: boolean }): Promise<boolean> => {
@@ -53,7 +55,8 @@ const isAuthenticated = async (cmsPageContent: { requiresAuth: boolean }): Promi
 const RenderCMSPage: React.FC<{ slug: string }> = async ({slug}) => {
 
     const {isEnabled} = await draftMode();
-    const cmsPageContent = await getCachedPageContent(slug, isEnabled)
+    const locale = await getLocaleFromCookies();
+    const cmsPageContent = await getCachedPageContent(slug, isEnabled, locale)
 
     return <>
         <h1>{cmsPageContent.title}</h1>
@@ -66,12 +69,24 @@ const RenderCMSPage: React.FC<{ slug: string }> = async ({slug}) => {
     </>
 }
 
+const getLocaleFromCookies = async () => {
+
+    // fallback to default locale during pre-builds
+    if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) return 'en';
+
+    const cookieStore = await cookies()
+    return cookieStore.get('locale')?.value ?? 'en';
+}
+
 
 const CMSPageRendering: React.FC<{ params: Promise<{ slug: string }> }> = async ({params}) => {
     const {slug} = await params
-    const {isEnabled} = await draftMode();
 
-    const cmsPageContent = await getCachedPageContent(slug, isEnabled)
+    const {isEnabled} = await draftMode();
+    const locale = await getLocaleFromCookies();
+
+    console.log(`Render page with slug=${slug} isEnabled=${isEnabled} locale=${locale}`)
+    const cmsPageContent = await getCachedPageContent(slug, isEnabled, locale)
 
     if (!await isAuthenticated(cmsPageContent)) {
         return <>
@@ -86,6 +101,7 @@ const CMSPageRendering: React.FC<{ params: Promise<{ slug: string }> }> = async 
 }
 
 const CMSPage: React.FC<{ params: Promise<{ slug: string }> }> = ({params}) => {
+
 
     return <>
         <Suspense fallback={<span>Loading CMS Content...</span>}>

@@ -18,7 +18,6 @@ export function createDefaultCacheHandler(): CacheHandler {
 
     return {
         async get(cacheKey) {
-            console.log(`${LOG_PREFIX} GET: ${cacheKey}`);
 
             // Wait for any pending set for this key to complete
             const pendingPromise = pendingSets.get(cacheKey);
@@ -59,7 +58,6 @@ export function createDefaultCacheHandler(): CacheHandler {
         },
 
         async set(cacheKey, pendingEntry) {
-            console.log(`${LOG_PREFIX} SET: ${cacheKey}`);
 
             let resolvePending: () => void = () => {
             };
@@ -102,18 +100,10 @@ export function createDefaultCacheHandler(): CacheHandler {
         },
 
         async updateTags(tags: string[]) {
-            console.log(`${LOG_PREFIX} REFRESH_TAGS (${tags})`);
 
-            // In a simple in-memory cache without tag indexing, the simplest and safest
-            // approach for a tag revalidation event is to clear the entire cache.
-            // This ensures that all future 'get' requests are a MISS, which forces
-            // fresh content to be fetched and re-cached with a new timestamp.
-            if (tags.length > 0) {
-                console.log(`${LOG_PREFIX} REFRESH_TAGS: Clearing all ${memoryCache.size} entries.`);
-                memoryCache.clear();
-            } else {
-                console.log(`${LOG_PREFIX} REFRESH_TAGS: No tags provided, cache not cleared.`);
-            }
+            console.log(`${LOG_PREFIX} UPDATE_TAGS: ${tags}.`);
+            console.log(`${LOG_PREFIX} UPDATE_TAGS: Clearing all ${memoryCache.size} entries.`);
+            memoryCache.clear();
 
             // Must return a Promise<void>
             return Promise.resolve();
@@ -125,7 +115,7 @@ export function createDefaultCacheHandler(): CacheHandler {
         },
 
         async refreshTags() {
-            console.log(`${LOG_PREFIX} UPDATE_TAGS (no-op)`);
+            console.log(`${LOG_PREFIX} REFRESH_TAGS (no-op)`);
             return Promise.resolve();
         },
     };

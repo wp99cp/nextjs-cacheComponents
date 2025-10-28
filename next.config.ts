@@ -7,7 +7,11 @@ const nextConfig: NextConfig = {
 
     cacheHandlers: {
         default: require.resolve('./src/cache-handlers/default.js'),
-    }
+    },
+
+    generateBuildId: () => {
+        return process.env.GIT_HASH ?? 'no-commit-hash-found'
+    },
 
 };
 

@@ -7,6 +7,7 @@ Some experiments with the new cacheComponents API from NextJS 16.
 - Use cacheComponents and PPP to cache private and public pages on the Server
 - Use custom cacheHandler for cacheComponents
 - Draft Mode to bypass the cache
+- Multi locale (manually set the `locale` cookie to a value, fallback to `en`)
 
 ## Test Locally
 
