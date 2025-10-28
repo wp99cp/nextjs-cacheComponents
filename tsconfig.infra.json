@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": false
+  },
+  "include": [
+    "src/cache-handlers/default.ts"
+  ]
+}

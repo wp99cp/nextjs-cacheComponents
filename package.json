@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "prebuild": "tsc -p tsconfig.infra.json",
+    "dev": "pnpm prebuild && next dev",
+    "build": "pnpm prebuild && next build",
     "start": "next start",
     "lint": "eslint"
   },
