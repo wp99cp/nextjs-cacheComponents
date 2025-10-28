@@ -10,6 +10,7 @@ const Page: React.FC = () => {
 
         <h2>Visit some dynamic pages</h2>
         - <Link href='/public'>A public page (pre-rendered)</Link>
+        <br/>
         - <Link href='/public-on-visit'>A public page (rendered on first visit, then cached)</Link>
         <br/>
         - <Link href='/private'>A private page</Link>
